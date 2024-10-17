@@ -1,0 +1,11 @@
+.venv
+.DS_Store
+.env
+.swo
+*.swp
+__pycache__
+*.db
+db-data
+*.egg-info
+build
+.coverage
