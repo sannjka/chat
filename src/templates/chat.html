@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat</title>
+</head>
+<body>
+    <h1>Chat</h1>
+    <form>
+        <label for="username" style="width:150px">Введите ваше имя: </label>
+        <input style="width:150px" type="text" id="username" required>
+        <button style="width:100px" type="button" onclick="connectToChat()">Подключиться</button>
+    </form>
+    <div id="chatbox" style="border: 1px solid #ccc; width: 400px; height: 200px; overflow-y: scroll;"></div>
+    <form>
+        <input style="width:290px" type="text" id="message" required>
+        <button style="width:100px" type="button" onclick="sendMessage()">Отправить</button>
+    </form>
+
+    <script>
+        let socket;
+        let username;
+        const chatbox = document.getElementById("chatbox");
+
+        function connectToChat() {
+            username = document.getElementById("username").value;
+            if (username) {
+                socket = new WebSocket(`ws://localhost:8010/ws/${username}`);
+                socket.onmessage = function(event) {
+                    chatbox.innerHTML += event.data + "<br>";
+                    chatbox.scrollTop = chatbox.scrollHeight;
+                };
+            }
+        }
+
+        function sendMessage() {
+            const message = document.getElementById("message").value;
+            if (socket && message) {
+                socket.send(message);
+                document.getElementById("message").value = "";
+            }
+        }
+    </script>
+</body>
+</html>
