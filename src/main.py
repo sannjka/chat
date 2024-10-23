@@ -4,9 +4,14 @@ from fastapi import FastAPI, WebSocket, Request, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from src.auth.authenticate import authenticate
+from src.routes.users import user_router
+
 
 app = FastAPI()
 templates = Jinja2Templates(directory='src/templates')
+
+app.include_router(user_router, prefix='/user')
 
 class ConnectionManager:
     def __init__(self):
