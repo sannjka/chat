@@ -16,3 +16,13 @@ async def default_client():
         yield client
         # Clean up resources
         #await User.find_all().delete()
+
+@pytest_asyncio.fixture(scope='function')
+async def default_client_function():
+    #await init_db()
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+            transport=transport, base_url='http://app') as client:
+        yield client
+        # Clean up resources
+        #await User.find_all().delete()

@@ -1,6 +1,7 @@
 from typing import List
+from datetime import timedelta
 
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Response
 from fastapi.security import OAuth2PasswordRequestForm
 
 from src.auth.hash_password import HashPassword
@@ -10,15 +11,15 @@ from src.models.users import User, BaseUser, TokenResponse
 from src.database.repository import FakeRepositoryUser
 
 
-user_router = APIRouter(tags=["User"])
+user_router = APIRouter()
 hash_password = HashPassword()
 fake_users = [
     User(**{
-        'email': 'shrek@mail.com',
+        'username': 'shrek@mail.com',
         'password': hash_password.create_hash('strong!'),
     }),
     User(**{
-        'email': 'donkey@mail.com',
+        'username': 'donkey@mail.com',
         'password': hash_password.create_hash('weak!'),
     }),
 ]
@@ -27,7 +28,7 @@ user_database = FakeRepositoryUser(fake_users)
 
 @user_router.post('/signup')
 async def sign_new_user(user: User) -> dict:
-    user_exist = await user_database.get(user.email)
+    user_exist = await user_database.get(user.username)
     if user_exist:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -40,9 +41,9 @@ async def sign_new_user(user: User) -> dict:
 
 @user_router.post('/signin', response_model=TokenResponse)
 async def sign_user_in(
+        response: Response,
         form_data: OAuth2PasswordRequestForm = Depends()
     ) -> dict:
-    print(fake_users)
     user_exist = await user_database.get(form_data.username)
     if not user_exist:
         raise HTTPException(
@@ -50,7 +51,15 @@ async def sign_user_in(
             detail='User with supplied email does not exist'
         )
     if hash_password.verify_hash(form_data.password, user_exist.password):
-        access_token = create_access_token(user=user_exist.email)
+        access_token = create_access_token(
+            user=user_exist.username,
+            expires_delta=timedelta(minutes=5),
+        )
+        response.set_cookie(
+            key='access_token',
+            value=f'Bearer {access_token}',
+            httponly=True,
+        )
         return {
             'access_token': access_token,
             'token_type': 'Bearer'

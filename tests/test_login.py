@@ -15,11 +15,11 @@ from src.models.users import User
 async def access_token() -> str:
     return create_access_token('testuser@mail.com')
 
-@pytest_asyncio.fixture(scope='session')
+@pytest_asyncio.fixture(scope='function')
 async def wrong_token() -> str:
     return create_access_token('wronguser@mail.com')
 
-@pytest_asyncio.fixture(scope='session')
+@pytest_asyncio.fixture(scope='function')
 async def expired_token() -> str:
     return create_access_token(
         'testuser@mail.com',
@@ -40,7 +40,7 @@ async def test_sign_new_user(default_client: httpx.AsyncClient) -> None:
         'message': 'User successfully registered!',
     }
 
-    response = await default_client.post('/user/signup',
+    response = await default_client.post('/api/v1/user/signup',
                                          json=payload,
                                          headers=headers)
     assert response.status_code == 200
@@ -57,7 +57,7 @@ async def test_sign_user_in(default_client: httpx.AsyncClient) -> None:
         'Content-Type': 'application/x-www-form-urlencoded',
     }
 
-    response = await default_client.post('/user/signin',
+    response = await default_client.post('/api/v1/user/signin',
                                          data=payload,
                                          headers=headers)
     assert response.status_code == 200
@@ -78,7 +78,7 @@ async def test_sign_wrong_user_name_in(
         'detail': 'User with supplied email does not exist',
     }
 
-    response = await default_client.post('/user/signin',
+    response = await default_client.post('/api/v1/user/signin',
                                          data=payload,
                                          headers=headers)
     assert response.status_code == 404
@@ -98,7 +98,7 @@ async def test_sign_wrong_password_in(default_client: httpx.AsyncClient) -> None
         'detail': 'Invalid details passed.',
     }
 
-    response = await default_client.post('/user/signin',
+    response = await default_client.post('/api/v1/user/signin',
                                          data=payload,
                                          headers=headers)
     assert response.status_code == 401
@@ -115,16 +115,16 @@ async def test_retrieve_all_users(
         'Authorization': f'Bearer {access_token}',
     }
 
-    url = f'/user/'
+    url = f'/api/v1/user/'
     response = await default_client.get(url, headers=headers)
     content = response.json()
 
     assert response.status_code == 200
     assert {'email': 'testuser@mail.com'} in response.json()
 
-@pytest.mark.asyncio(loop_scope='session')
+@pytest.mark.asyncio(loop_scope='function')
 async def test_retrieve_all_users_wrong_token(
-        default_client: httpx.AsyncClient,
+        default_client_function: httpx.AsyncClient,
         wrong_token: str,
     ) -> List[User]:
 
@@ -136,16 +136,16 @@ async def test_retrieve_all_users_wrong_token(
         'detail': 'Operation not allowed',
     }
 
-    url = f'/user/'
-    response = await default_client.get(url, headers=headers)
+    url = f'/api/v1/user/'
+    response = await default_client_function.get(url, headers=headers)
     content = response.json()
 
     assert response.status_code == 403
     assert response.json() == test_response
 
-@pytest.mark.asyncio(loop_scope='session')
+@pytest.mark.asyncio(loop_scope='function')
 async def test_retrieve_all_users_expired_token(
-        default_client: httpx.AsyncClient,
+        default_client_function: httpx.AsyncClient,
         expired_token: str,
     ) -> List[User]:
 
@@ -157,8 +157,8 @@ async def test_retrieve_all_users_expired_token(
         'detail': 'Token expired',
     }
 
-    url = f'/user/'
-    response = await default_client.get(url, headers=headers)
+    url = f'/api/v1/user/'
+    response = await default_client_function.get(url, headers=headers)
     content = response.json()
 
     assert response.status_code == 401

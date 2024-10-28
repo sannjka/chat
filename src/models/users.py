@@ -2,12 +2,12 @@ from pydantic import BaseModel, EmailStr
 
 
 class BaseUser(BaseModel):
-    email: EmailStr
+    username: EmailStr
 
     model_config = {
         "json_schema_extra": {
             "example": {
-               "email": "fiona@mail.com",
+               "username": "fiona@mail.com",
             },
         }
     }
@@ -18,7 +18,7 @@ class User(BaseUser):
     model_config = {
         "json_schema_extra": {
             "example": {
-               "email": "fiona@mail.com",
+               "username": "fiona@mail.com",
                "password": "green!",
             },
         }

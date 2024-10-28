@@ -25,7 +25,7 @@ class FakeRepositoryUser(AbstractRepositoryUser):
 
     async def get(self, email) -> User | None:
         try:
-            return next(u for u in self._users if u.email == email)
+            return next(u for u in self._users if u.username == email)
         except StopIteration:
             return None
 

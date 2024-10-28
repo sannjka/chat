@@ -1,34 +1,36 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Chat</title>
-    </head>
-    <body>
-        <h1>WebSocket Chat</h1>
+{% extends "base.html" %}
+
+{% block content %}
+    {% if user %}
         <h2>Your ID: <span id="ws-id"></span></h2>
         <form action="" onsubmit="sendMessage(event)">
             <input type="text" id="messageText" autocomplete="off"
-                style="width: 200px"/>
+                style="border: 1px solid #ccc; width: 200px"/>
             <button style="width: 90px">Send</button>
         </form>
         <div id="chatbox" style="border: 1px solid #ccc; width: 300px;
                                  height: 200px; overflow-y: scroll;"></div>
-        <script>
-            const chatbox = document.getElementById("chatbox");
-            var client_id = Date.now().toString();
-            document.querySelector("#ws-id").textContent = client_id;
-            var ws = new WebSocket(`{{ url_for('websocket_endpoint',
-                                                client_id='${client_id}') }}`);
-            ws.onmessage = function(event) {
-                chatbox.innerHTML += event.data + "<br>";
-                chatbox.scrollTop = chatbox.scrollHeight;
-            };
-            function sendMessage(event) {
-                var input = document.getElementById("messageText")
-                ws.send(input.value)
-                input.value = ''
-                event.preventDefault()
-            }
-        </script>
-    </body>
-</html>
+    {% else %}
+        <h2>Not authorized</h2>
+    {% endif %}
+{% endblock %}
+
+{% block script %}
+    {{ super() }}
+  
+    const chatbox = document.getElementById("chatbox");
+    var client_id = Date.now().toString();
+    document.querySelector("#ws-id").textContent = client_id;
+    var ws = new WebSocket(`{{ url_for('websocket_endpoint',
+                                        client_id='${client_id}') }}`);
+    ws.onmessage = function(event) {
+        chatbox.innerHTML += event.data + "<br>";
+        chatbox.scrollTop = chatbox.scrollHeight;
+    };
+    function sendMessage(event) {
+        var input = document.getElementById("messageText")
+        ws.send(input.value)
+        input.value = ''
+        event.preventDefault()
+    }
+{% endblock %}
