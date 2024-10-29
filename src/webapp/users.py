@@ -21,15 +21,15 @@ async def chat_interface(
         request: Request,
         user: str = Depends(get_user_from_cookie),
     ):
-    context = {
-        'request': request,
-        'user': user,
-    }
-    return templates.TemplateResponse('chat.html', context)
+    return templates.TemplateResponse(
+        request=request, name='chat.html', context={'user': user},
+    )
 
 @user_router.get('/register/', response_class=HTMLResponse)
 def register(request: Request):
-    return templates.TemplateResponse('register.html', {'request': request})
+    return templates.TemplateResponse(
+        request=request, name='register.html',
+    )
 
 @user_router.post('/register/', response_class=RedirectResponse)
 async def register(request: Request, data: Annotated[UserRegister, Form()]):
@@ -38,19 +38,17 @@ async def register(request: Request, data: Annotated[UserRegister, Form()]):
     try:
         await sign_new_user(user=User(**data.model_dump()))
     except HTTPException as exc:
-        context = {
-            'request': request,
-            'user': None,
-            'msg': 'Не удалось зарегистрировать.',
-        }
-        return templates.TemplateResponse('register.html', context)
+        return templates.TemplateResponse(
+            request=request, name='register.html',
+            context={'user': None, 'msg': exc.detail},
+        )
     else:
         await sign_user_in(response=response, form_data=data)
         return response
 
 @user_router.get('/login/', response_class=HTMLResponse)
 def login(request: Request):
-    return templates.TemplateResponse('login.html', {'request': request})
+    return templates.TemplateResponse(request=request, name='login.html')
 
 @user_router.post('/login/', response_class=RedirectResponse)
 async def login(request: Request, data: Annotated[UserData, Form()]):
@@ -59,11 +57,10 @@ async def login(request: Request, data: Annotated[UserData, Form()]):
     try:
         await sign_user_in(response=response, form_data=data)
     except HTTPException:
-        context = {
-            'request': request,
-            'msg': 'Incorrect Email or Password',
-        }
-        return templates.TemplateResponse('login.html', context)
+        return templates.TemplateResponse(
+            request=request, name='login.html',
+            context={'msg': 'Incorrect Email or Password'},
+        )
     else:
         return response
 

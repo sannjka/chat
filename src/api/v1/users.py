@@ -8,7 +8,7 @@ from src.auth.hash_password import HashPassword
 from src.auth.jwt_handler import create_access_token
 from src.auth.authenticate import authenticate
 from src.models.users import User, BaseUser, TokenResponse
-from src.database.repository import FakeRepositoryUser
+from src.database.repository import AbstractRepositoryUser, FakeRepositoryUser
 
 
 user_router = APIRouter()
@@ -23,7 +23,7 @@ fake_users = [
         'password': hash_password.create_hash('weak!'),
     }),
 ]
-user_database = FakeRepositoryUser(fake_users)
+user_database: AbstractRepositoryUser = FakeRepositoryUser(fake_users)
 
 
 @user_router.post('/signup')

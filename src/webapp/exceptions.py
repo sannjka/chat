@@ -9,12 +9,11 @@ async def validation_exception_handler(
         exc: RequestValidationError,
     ):
     form_data = await request.form()
-    context = {
-        'request': request,
-        'msg': 'Validation error',
-        'username': form_data.get('username'),
-    }
-    return templates.TemplateResponse('register.html', context)
+    username = form_data.get('username')
+    return templates.TemplateResponse(
+        request=request, name='register.html',
+        context={'msg': 'Validation error', 'username': username},
+    )
 
 def include_app(app):
     app.add_exception_handler(RequestValidationError,
