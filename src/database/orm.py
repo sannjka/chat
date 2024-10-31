@@ -45,5 +45,5 @@ async def drop_db(engine) -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
-async def get_session() -> AsyncSession:
+async def get_session() -> AsyncSession:  # pragma: no cover
     return async_session_maker

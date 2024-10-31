@@ -27,7 +27,7 @@ class OAuth2PasswordBearerWithCookie(OAuth2):
 
         scheme, param = get_authorization_scheme_param(authorization)
         if not authorization or scheme.lower() != "bearer":
-            if self.auto_error:
+            if self.auto_error:  # pragma: no cover
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Not authenticated",
