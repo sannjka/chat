@@ -5,7 +5,7 @@ import pytest
 import pytest_asyncio
 
 
-@pytest.mark.asyncio(loop_scope='function')
+@pytest.mark.asyncio(loop_scope='session')
 async def test_webapp_register_get(
         default_client_function: httpx.AsyncClient,
     ) -> None:
@@ -14,14 +14,14 @@ async def test_webapp_register_get(
     assert 'Register to chat' in response.text
     assert '<form method="POST">' in response.text
 
-@pytest.mark.asyncio(loop_scope='function')
+@pytest.mark.asyncio(loop_scope='session')
 async def test_webapp_register_post_success(
         default_client_function: httpx.AsyncClient,
     ) -> None:
     data = {
-        'username': 'fiona@mail.com',
-        'password': 'green!',
-        'password_check': 'green!',
+        'username': 'new_user@mail.com',
+        'password': 'new_password',
+        'password_check': 'new_password',
         }
     response = await default_client_function.post(
         '/register/', follow_redirects=True, data=data,
@@ -30,19 +30,17 @@ async def test_webapp_register_post_success(
     assert response.url == 'http://app/'
     assert 'Log out' in response.text
 
-@pytest.mark.asyncio(loop_scope='function')
+@pytest.mark.asyncio(loop_scope='session')
 async def test_webapp_register_post_already_exists(
         default_client_function: httpx.AsyncClient,
+        add_user,
     ) -> None:
     data = {
-        'username': 'fiona@mail.com',
-        'password': 'green!',
-        'password_check': 'green!',
+        'username': 'user_exists@mail.com',
+        'password': 'password_exists',
+        'password_check': 'password_exists',
         }
-    response = await default_client_function.post(
-        '/register/', follow_redirects=True, data=data,
-    )
-    # Переделать на фикстуру создания пользователя
+    await add_user(**data)
     response = await default_client_function.post(
         '/register/', follow_redirects=True, data=data,
     )
@@ -50,14 +48,14 @@ async def test_webapp_register_post_already_exists(
     assert response.url == 'http://app/register/'
     assert 'User with supplied username exists' in response.text
 
-@pytest.mark.asyncio(loop_scope='function')
+@pytest.mark.asyncio(loop_scope='session')
 async def test_webapp_register_post_email_validation_fail(
         default_client_function: httpx.AsyncClient,
     ) -> None:
     data = {
-        'username': 'fiona',
-        'password': 'green!',
-        'password_check': 'green!',
+        'username': 'wrong_username',
+        'password': 'password',
+        'password_check': 'password',
         }
     response = await default_client_function.post(
         '/register/', follow_redirects=True, data=data,
@@ -66,14 +64,14 @@ async def test_webapp_register_post_email_validation_fail(
     assert response.url == 'http://app/register/'
     assert 'Validation error' in response.text
 
-@pytest.mark.asyncio(loop_scope='function')
+@pytest.mark.asyncio(loop_scope='session')
 async def test_webapp_register_post_password_validation_fail(
         default_client_function: httpx.AsyncClient,
     ) -> None:
     data = {
-        'username': 'fiona@mail.com',
-        'password': 'green!',
-        'password_check': 'wrong',
+        'username': 'new_user@mail.com',
+        'password': 'new_password',
+        'password_check': 'wrong_confirmation',
         }
     response = await default_client_function.post(
         '/register/', follow_redirects=True, data=data,
@@ -82,7 +80,7 @@ async def test_webapp_register_post_password_validation_fail(
     assert response.url == 'http://app/register/'
     assert 'Validation error' in response.text
 
-@pytest.mark.asyncio(loop_scope='function')
+@pytest.mark.asyncio(loop_scope='session')
 async def test_webapp_login_get(
         default_client_function: httpx.AsyncClient,
     ) -> None:
@@ -91,17 +89,16 @@ async def test_webapp_login_get(
     assert 'Login to chat' in response.text
     assert '<form method="POST">' in response.text
 
-@pytest.mark.asyncio(loop_scope='function')
+@pytest.mark.asyncio(loop_scope='session')
 async def test_webapp_login_post_success(
         default_client_function: httpx.AsyncClient,
+        add_user,
     ) -> None:
-    # этот тест не должен был пройти, потому что в рамках
-    # loop_scope='function' такой пользователь еще не создавался
-    # доработаю, когда сделаю фикстуру для тестовой базы базы данных
     data = {
-        'username': 'fiona@mail.com',
-        'password': 'green!',
+        'username': 'user_exists@mail.com',
+        'password': 'correct_password',
         }
+    await add_user(**data)
     response = await default_client_function.post(
         '/login/', follow_redirects=True, data=data,
     )
@@ -110,13 +107,13 @@ async def test_webapp_login_post_success(
     assert 'Log out' in response.text
     assert 'Bearer' in default_client_function.cookies.get('access_token')
 
-@pytest.mark.asyncio(loop_scope='function')
+@pytest.mark.asyncio(loop_scope='session')
 async def test_webapp_login_post_wrong_user(
         default_client_function: httpx.AsyncClient,
     ) -> None:
     data = {
         'username': 'wrong@mail.com',
-        'password': 'green!',
+        'password': 'password',
         }
     response = await default_client_function.post(
         '/login/', follow_redirects=True, data=data,
@@ -125,17 +122,17 @@ async def test_webapp_login_post_wrong_user(
     assert response.url == 'http://app/login/'
     assert 'Incorrect Email or Password' in response.text
 
-@pytest.mark.asyncio(loop_scope='function')
+@pytest.mark.asyncio(loop_scope='session')
 async def test_webapp_login_post_wrong_password(
         default_client_function: httpx.AsyncClient,
+        add_user,
     ) -> None:
-    # этот тест не должен был пройти, потому что в рамках
-    # loop_scope='function' такой пользователь еще не создавался
-    # доработаю, когда сделаю фикстуру для тестовой базы базы данных
     data = {
-        'username': 'fiona@mail.com',
-        'password': 'wrong',
+        'username': 'user_exists@mail.com',
+        'password': 'correct_password',
         }
+    await add_user(**data)
+    data['password'] = 'wrong'
     response = await default_client_function.post(
         '/login/', follow_redirects=True, data=data,
     )
@@ -143,7 +140,7 @@ async def test_webapp_login_post_wrong_password(
     assert response.url == 'http://app/login/'
     assert 'Incorrect Email or Password' in response.text
 
-@pytest.mark.asyncio(loop_scope='function')
+@pytest.mark.asyncio(loop_scope='session')
 async def test_webapp_logout_get(
         default_client_function: httpx.AsyncClient,
     ) -> None:

@@ -1,64 +1,44 @@
 import abc
 from typing import List
 
-from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 
 from src.models.users import User
+from src.database.orm import User as User_database
 
 
-class AbstractRepositoryUser(abc.ABC):
+class Repository:
+    model = None
 
-    @abc.abstractmethod
-    async def add(self, user: User):
-        raise NotImplementedError
+    def __init__(self, session):
+        self.session = session
 
-    @abc.abstractmethod
-    async def get(self, email: str) -> User:
-        raise NotImplementedError
+    async def add(self, values):
+        async with self.session() as session:
+            async with session.begin():
+                new_instance = self.model(**values.model_dump())
+                session.add(new_instance)
+                try:
+                    await session.commit()
+                except SQLAlchemyError as e:
+                    await session.rollback()
+                    raise e
+            return new_instance
 
-class FakeRepositoryUser(AbstractRepositoryUser):
-    def __init__(self, users):
-        self._users = list(users)
+    async def get(self, **filters):
+        async with self.session() as session:
+            query = select(self.model).filter_by(**filters)
+            result = await session.execute(query)
+            return result.scalar_one_or_none()
 
-    async def add(self, user: User):
-        self._users.append(user)
+    async def list(self, **filters):
+        async with self.session() as session:
+            query = select(self.model)
+            if filters:
+                query = query.filter_by(**filters)
+            result = await session.execute(query)
+            return result.scalars().all()
 
-    async def get(self, email) -> User | None:
-        try:
-            return next(u for u in self._users if u.username == email)
-        except StopIteration:
-            return None
-
-    async def list(self) -> List[User]:
-        return list(self._users)
-
-#class Database:
-#    def __init__(self, model):
-#        self.data = []
-#
-#    async def add(self, item: BaseModel) -> None:
-#        seld.data.append(item)
-#
-#    async def get(self, id: int) -> Any:
-#        for item in self.data:
-#            if item.id == id:
-#                return item
-#        return None
-#
-#    async def list(self) -> List[Any]:
-#        return list(self.data)
-#
-#    async def update(self, id: int, body: BaseModel) -> Any:
-#        found = self.get(id)
-#        if found:
-#            body_data = body_model_dump()
-#            for k, v in body_data.items():
-#                if v is not None:
-#                    found[k] = v
-#            return found
-#        return False
-#
-#    async def delete(self, id: PydanticObjectId) -> bool:
-#        found = self.get(id)
-#        if found:
-#            self.data.remove(found)
+class UserRepository(Repository):
+    model = User_database

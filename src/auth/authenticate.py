@@ -37,7 +37,7 @@ class OAuth2PasswordBearerWithCookie(OAuth2):
                 return None
         return param
 
-oauth2_scheme = OAuth2PasswordBearerWithCookie(tokenUrl='/user/signin',
+oauth2_scheme = OAuth2PasswordBearerWithCookie(tokenUrl='/api/v1/user/signin',
                                                auto_error=False)
 
 async def authenticate(token: str = Depends(oauth2_scheme)) -> str:
