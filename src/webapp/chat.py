@@ -35,11 +35,11 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
         while True:
             data = await websocket.receive_text()
             personal_message = f'You say: {data}'
-            common_message = f'Client #{client_id} says: {data}'
+            common_message = f'{client_id} says: {data}'
             await manager.send_personal_message(personal_message, websocket)
             await manager.broadcast(common_message, client_id)
     except WebSocketDisconnect:
         manager.disconnect(client_id, websocket)
-        left_message = f'Client #{client_id} left the chat'
+        left_message = f'{client_id} left the chat'
         await manager.broadcast(left_message, client_id)
 

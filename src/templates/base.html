@@ -18,16 +18,34 @@
       </ul>
       <ul class="flex gap-5 rm-10">
           {% if user %}
-              <li><a href="/logout">Log out</a></li>
+              <li><a href="/logout">
+                <button class="bg-blue-500 hover:bg-blue-700 text-white
+                    font-bold py-1 px-6 rounded" type="button">
+                  Log out
+                </button>
+              </a></li>
           {% else %}
-              <li><a href="/register">Register</a></li>
-              <li><a href="/login">Log In</a></li>
+              <li><a href="/register">
+                <button class="bg-blue-500 hover:bg-blue-700 text-white
+                    font-bold py-1 px-6 rounded" type="button">
+                  Register
+                </button>
+              </a></li>
+              <li><a href="/login">
+                <button class="bg-blue-500 hover:bg-blue-700 text-white
+                    font-bold py-1 px-6 rounded" type="button">
+                  Log In
+                </button>
+              </a></li>
           {% endif %}
 
       </ul>
   </nav>
   <hr>
-  <div id="content">{% block content %}{% endblock %}</div>
+
+  <div id="content">
+  {% block content %}{% endblock %}
+  </div>
   
   <script>
       {% block script %}{% endblock %}

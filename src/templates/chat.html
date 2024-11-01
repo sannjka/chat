@@ -2,16 +2,35 @@
 
 {% block content %}
     {% if user %}
-        <h2>Your ID: <span id="ws-id"></span></h2>
-        <form action="" onsubmit="sendMessage(event)">
-            <input type="text" id="messageText" autocomplete="off"
-                style="border: 1px solid #ccc; width: 200px"/>
-            <button style="width: 90px">Send</button>
-        </form>
-        <div id="chatbox" style="border: 1px solid #ccc; width: 300px;
-                                 height: 200px; overflow-y: scroll;"></div>
+    <div class="flex justify-center">
+  <div id="content" class="flex justify-center">
+        <div class="flex flex-col bg=white shadow-md rounded
+                px-8 pt-6 pb-8 mb-4" style="height: 80vh; width: 40vw">
+            <div class="flex-none">
+            <form action="" onsubmit="sendMessage(event)">
+                <h2>Your ID: {{ user }}</h2>
+                <div class="mb-4 flex flex-row space-x-2">
+                    <input type="text" id="messageText" autocomplete="off"
+                        class="shadow appearance-none border rounded
+                            w-full py-2 px-3 text-gray-700 leading-tight"
+                        />
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-700
+                        text-white font-bold py-1 px-6 rounded leading-tight">
+                     Send
+                    </button>
+                </div>
+            </form>
+            </div>
+            <div id="chatbox" class="px-5 pt-4 br-2 border flex-1"
+                style="overflow-y: scroll;">
+            </div>
+        </div>
+    </div>
     {% else %}
-        <h2>Not authorized</h2>
+        <div class="bg-orange-100 border-l-4 border-orange-500
+            text-orange-700 p-4" role="alert">
+        <h2 class="font-bold">Not authorized</h2>
+        </div>
     {% endif %}
 {% endblock %}
 
@@ -19,10 +38,8 @@
     {{ super() }}
   
     const chatbox = document.getElementById("chatbox");
-    var client_id = Date.now().toString();
-    document.querySelector("#ws-id").textContent = client_id;
-    var ws = new WebSocket(`{{ url_for('websocket_endpoint',
-                                        client_id='${client_id}') }}`);
+    var ws = new WebSocket("{{ url_for('websocket_endpoint',
+                            client_id=user) }}");
     ws.onmessage = function(event) {
         chatbox.innerHTML += event.data + "<br>";
         chatbox.scrollTop = chatbox.scrollHeight;

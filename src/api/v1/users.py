@@ -50,7 +50,7 @@ async def sign_user_in(
     if hash_password.verify_hash(form_data.password, user_exist.password):
         access_token = create_access_token(
             user=user_exist.username,
-            expires_delta=timedelta(minutes=5),
+            expires_delta=timedelta(minutes=150),
         )
         response.set_cookie(
             key='access_token',
