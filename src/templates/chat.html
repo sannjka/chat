@@ -3,35 +3,61 @@
 {% block content %}
     {% if user %}
     <div class="flex justify-center">
-  <div id="content" class="flex justify-center">
-        <div class="flex flex-col bg=white shadow-md rounded
+      <div class="grid grid-cols-1 md:grid-cols-1 items-center gap-8"
+          style="height: 80vh; overflow-y: scroll;">
+          <ul class="flex flex-col gap-2 h-full items-center p-2">
+              <li class="w-full flex">
+                <a
+                  id="tab_common"
+                  href="#tab_common"
+                  class="py-3 px-4 text-sm w-full text-gray-400 rounded-md border border-gray-100">
+                  common
+                </a>
+              </li>
+              {% if users %}
+              {% for friend in users %}
+              <li class="w-full flex">
+                <a
+                  id="tab_{{ friend }}"
+                  href="#tab_{{ friend }}"
+                  class="py-3 px-4 text-sm w-full text-gray-400 rounded-md border border-gray-100">
+                  {{ friend }}
+                </a>
+              </li>
+              {% endfor %}
+              {% endif %}
+          </ul>
+      </div>
+      <div class="flex justify-center">
+        <div class="flex flex-col bg-white shadow-md rounded
                 px-8 pt-6 pb-8 mb-4" style="height: 80vh; width: 40vw">
             <div class="flex-none">
-            <form action="" onsubmit="sendMessage(event)">
-                <h2>Your ID: {{ user }}</h2>
-                <div class="mb-4 flex flex-row space-x-2">
-                    <input type="text" id="messageText" autocomplete="off"
-                        class="shadow appearance-none border rounded
-                            w-full py-2 px-3 text-gray-700 leading-tight"
-                        />
-                    <button type="submit" class="bg-blue-500 hover:bg-blue-700
-                        text-white font-bold py-1 px-6 rounded leading-tight">
-                     Send
-                    </button>
-                </div>
-            </form>
+                <form action="" onsubmit="sendMessage(event)">
+                    <h2>Your ID: {{ user }}</h2>
+                    <div class="mb-4 flex flex-row space-x-2">
+                        <input type="text" id="messageText" autocomplete="off"
+                            class="shadow appearance-none border rounded
+                                w-full py-2 px-3 text-gray-700 leading-tight"
+                            />
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-700
+                            text-white font-bold py-1 px-6 rounded leading-tight">
+                         Send
+                        </button>
+                    </div>
+                </form>
             </div>
             <div id="chatbox" class="px-5 pt-4 br-2 border flex-1"
                 style="overflow-y: scroll;">
             </div>
         </div>
+      </div>
     </div>
     {% else %}
-        <div class="bg-orange-100 border-l-4 border-orange-500
+    <div class="bg-orange-100 border-l-4 border-orange-500
             text-orange-700 p-4" role="alert">
         <h2 class="font-bold">Not authorized</h2>
-        </div>
-    {% endif %}
+    </div>
+{% endif %}
 {% endblock %}
 
 {% block script %}
@@ -50,4 +76,39 @@
         input.value = ''
         event.preventDefault()
     }
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+
+    const allLinks = document.querySelectorAll(`a[href*="tab_"]`);
+
+    const switchTab = (linkId) => {
+        chatbox.innerHTML += linkId + "<br>";
+        chatbox.scrollTop = chatbox.scrollHeight;
+    };
+
+    const handleTabClick = (event) => {
+    {#
+      event.preventDefault();
+    #}
+      const linkId = event.target.id;
+      allLinks.forEach((link) => {
+        const isCurrentLink = link.id === linkId;
+        link.classList.toggle("bg-gray-100", isCurrentLink);
+        link.classList.toggle("text-blue-600", isCurrentLink);
+        link.classList.toggle("text-gray-400", !isCurrentLink);
+      });
+      switchTab(linkId);
+    };
+
+    allLinks.forEach((link) => {
+      link.addEventListener("click", handleTabClick);
+    });
+
+    const currentHash = window.location.hash;
+    const activeLink = currentHash
+      ? document.querySelector(`a[href="${currentHash}"]`)
+      : document.querySelector("a");
+    handleTabClick({ target: activeLink });
+    });
 {% endblock %}
