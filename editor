@@ -1,0 +1,147 @@
+#!/bin/bash
+function make_env {
+    local w_p=$1
+    #tmux send-keys -t fastapi_chat:$w_p "export VARIABLE_NAME=variable_value" C-m
+    tmux send-keys -t fastapi_chat:$w_p "clear" C-m
+}
+
+function activate_env {
+    local w_p=$1
+    local path_=$2
+    tmux send-keys -t fastapi_chat:$w_p "cd $devdir" C-m
+    delete_swp $w_p
+    tmux send-keys -t fastapi_chat:$w_p "source .venv/bin/activate" C-m
+    if [ -n $path_ ]; then
+        tmux send-keys -t fastapi_chat:$w_p "cd $devdir/$path_" C-m
+        delete_swp $w_p
+    fi
+    tmux send-keys -t fastapi_chat:$w_p "clear" C-m
+}
+
+function delete_swp {
+    local w_p=$1
+    tmux send-keys -t fastapi_chat:$w_p "rm .*.swp" C-m
+}
+
+function open_files {
+    local w_p=$1
+    local path_=$2
+    local ext_=$3
+    num=1
+    for file in $devdir/$path_/*.$ext_; do
+        file_name=$(basename $file)
+        [[ $file_name =~ ^__init__.py ]] && continue
+        if [ $num -eq 1 ]; then
+            tmux send-keys -t fastapi_chat:$w_p "vim $file" C-m
+        else
+            tmux send-keys -t fastapi_chat:$w_p ":tabnew $file" C-m
+        fi
+        (( num++ ))
+    done
+    tmux send-keys -t fastapi_chat:$w_p '1gt'
+}
+
+devdir='/Volumes/basement/education/chat'
+tmux has-session -t fastapi_chat
+if [[ $? != 0 ]]; then
+
+    page=1
+    #echo "app"
+    tmux new-session -s fastapi_chat -n app -d
+    activate_env 1 ""
+    tmux send-keys -t fastapi_chat 'vim src/main.py' C-m
+    #tmux send-keys -t fastapi_chat ':tabnew src/routes/users.py' C-m
+    #tmux send-keys -t fastapi_chat ':tabnew src/routes/messages.py' C-m
+    tmux send-keys -t fastapi_chat ':tabnew src/models/users.py' C-m
+    tmux send-keys -t fastapi_chat ':tabnew src/models/messages.py' C-m
+    tmux send-keys -t fastapi_chat ':tabnew src/database/repository.py' C-m
+    tmux send-keys -t fastapi_chat ':tabnew src/database.py' C-m
+    tmux send-keys -t fastapi_chat ':tabnew src/config.py' C-m
+    tmux send-keys -t fastapi_chat ':tabnew .env' C-m
+    tmux send-keys -t fastapi_chat ':tabnew editor' C-m
+    tmux send-keys -t fastapi_chat '1gt'
+    tmux split-window -h -t fastapi_chat
+    activate_env $page.2 ""
+    make_env $page.2
+    tmux split-window -v -t fastapi_chat
+    activate_env $page.3 ""
+    make_env $page.3
+
+    # api
+    (( page++ ))
+    cur_path='src/api/v1'
+    tmux new-window -n api -t fastapi_chat    
+    activate_env $page $cur_path
+    open_files $page $cur_path py
+    tmux split-window -h -t fastapi_chat:$page
+    activate_env $page.2 $cur_path
+    make_env $page.2
+    tmux select-pane -t fastapi_chat:$page.1
+
+    # webapp
+    (( page++ ))
+    cur_path='src/webapp'
+    tmux new-window -n webapp -t fastapi_chat    
+    activate_env $page $cur_path
+    open_files $page $cur_path py
+    tmux split-window -h -t fastapi_chat:$page
+    activate_env $page.2 $cur_path
+    make_env $page.2
+    tmux select-pane -t fastapi_chat:$page.1
+
+    # docker
+    (( page++ ))
+    tmux new-window -n docker -t fastapi_chat    
+    activate_env $page ""
+    #tmux send-keys -t fastapi_chat:$page "vim Dockerfile" C-m
+    #tmux send-keys -t fastapi_chat:$page ":tabnew docker-compose.yml" C-m
+    #tmux send-keys -t fastapi_chat:$page ":tabnew .dockerignore" C-m
+    #tmux send-keys -t fastapi_chat:$page '1gt'
+    tmux split-window -h -t fastapi_chat:$page
+    activate_env $page.2 ""
+    tmux select-pane -t fastapi_chat:$page.1
+
+    # auth
+    (( page++ ))
+    cur_path='src/auth'
+    tmux new-window -n auth -t fastapi_chat    
+    activate_env $page $cur_path
+    open_files $page $cur_path py
+    tmux split-window -h -t fastapi_chat:$page
+    activate_env $page.2 "src/auth"
+    tmux select-pane -t fastapi_chat:$page.1
+
+    # tests
+    (( page++ ))
+    cur_path='tests'
+    tmux new-window -n tests -t fastapi_chat    
+    activate_env $page $cur_path
+    open_files $page $cur_path py
+    tmux split-window -h -t fastapi_chat:$page
+    activate_env $page.2 ""
+    make_env $page.2
+    tmux select-pane -t fastapi_chat:$page.1
+
+    # templates
+    (( page++ ))
+    cur_path='src/templates'
+    tmux new-window -n templates -t fastapi_chat
+    activate_env $page $cur_path
+    open_files $page $cur_path html
+
+    # static
+    (( page++ ))
+    cur_path='src/static'
+    tmux new-window -n static -t fastapi_chat
+    activate_env $page $cur_path
+    tmux send-keys -t fastapi_chat:$page "vim -p **/*.css" C-m
+
+    # server
+    tmux send-keys -t fastapi_chat:1.2 "uvicorn src.main:app --port=8010 --reload" C-m
+    #tmux send-keys -t fastapi_chat:1.2 "docker logs -f planner" C-m
+
+    # select window
+    tmux select-window -t fastapi_chat:1
+    tmux select-pane -t fastapi_chat:1.1
+fi
+tmux attach -t fastapi_chat

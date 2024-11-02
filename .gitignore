@@ -9,4 +9,3 @@ db-data
 *.egg-info
 build
 .coverage
-editor
