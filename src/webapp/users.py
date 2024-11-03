@@ -1,7 +1,7 @@
-from typing import Annotated, Callable
+from typing import Annotated, Callable, List
+
 from fastapi import (Request, APIRouter, Form, HTTPException, Cookie, status,
                      Depends)
-import httpx
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.exceptions import RequestValidationError
@@ -12,6 +12,7 @@ from src.api.v1.users import sign_user_in, sign_new_user
 from src.auth.authenticate import get_user_from_cookie
 from src.models.users import User
 from .forms import UserData, UserRegister
+from .utils import get_users
 from src.database.orm import get_session
 
 
@@ -19,27 +20,12 @@ user_router = APIRouter()
 templates = Jinja2Templates(directory='src/templates')
 
 
-async def get_users(url, access_token):
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': access_token,
-    }
-    async with httpx.AsyncClient() as client:
-        users_response = await client.get(
-            url+'api/v1/user/', headers=headers,
-        )
-        if users_response.status_code == 200:
-            return users_response.json()
-        return []
-
 @user_router.get('/', response_class=HTMLResponse)
 async def chat_interface(
         request: Request,
-        user: str = Depends(get_user_from_cookie),
+        user: str | None = Depends(get_user_from_cookie),
+        users: List[str] = Depends(get_users),
     ):
-    url = str(request.url)
-    access_token = request.cookies.get('access_token')
-    users = await get_users(url, access_token)
     users = [name for item in users if (name := item['username']) != user]
     return templates.TemplateResponse(
         request=request, name='chat.html',

@@ -41,7 +41,8 @@ function open_files {
     tmux send-keys -t fastapi_chat:$w_p '1gt'
 }
 
-devdir='/Volumes/basement/education/chat'
+#devdir='/Volumes/basement/education/chat'
+devdir=$(pwd)
 tmux has-session -t fastapi_chat
 if [[ $? != 0 ]]; then
 
@@ -55,7 +56,7 @@ if [[ $? != 0 ]]; then
     tmux send-keys -t fastapi_chat ':tabnew src/models/users.py' C-m
     tmux send-keys -t fastapi_chat ':tabnew src/models/messages.py' C-m
     tmux send-keys -t fastapi_chat ':tabnew src/database/repository.py' C-m
-    tmux send-keys -t fastapi_chat ':tabnew src/database.py' C-m
+    tmux send-keys -t fastapi_chat ':tabnew src/database/orm.py' C-m
     tmux send-keys -t fastapi_chat ':tabnew src/config.py' C-m
     tmux send-keys -t fastapi_chat ':tabnew .env' C-m
     tmux send-keys -t fastapi_chat ':tabnew editor' C-m

@@ -10,11 +10,11 @@ def test_ws_send_get_message(ws_client):
         data1 = websocket1.receive_text()
         data2 = websocket2.receive_text()
     assert data1 == 'You say: hey'
-    assert data2 == 'Client #1 says: hey'
+    assert data2 == '1 says: hey'
 
 def test_ws_left_chat(ws_client):
     with ws_client.websocket_connect('/ws/1') as websocket1:
         with ws_client.websocket_connect('/ws/2') as websocket2:
             pass
         data1 = websocket1.receive_text()
-    assert data1 == 'Client #2 left the chat'
+    assert data1 == '2 left the chat'

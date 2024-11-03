@@ -1,4 +1,5 @@
 from datetime import timedelta
+from fastapi.exceptions import RequestValidationError
 
 import httpx
 import pytest
@@ -43,6 +44,27 @@ async def test_sign_new_user(
                                                   headers=headers)
     assert response.status_code == 200
     assert response.json() == test_response
+
+@pytest.mark.asyncio(loop_scope='session')
+async def test_sign_new_user_email_validation_error(
+        default_client_function: httpx.AsyncClient,
+    ) -> None:
+    payload = {
+        'username': 'wrong',
+        'password': 'testpassword',
+    }
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json',
+    }
+    test_response = {
+        'detail': 'Validation error',
+    }
+
+    with pytest.raises(RequestValidationError) as e_info:
+        response = await default_client_function.post('/api/v1/user/signup',
+                                                      json=payload,
+                                                      headers=headers)
 
 @pytest.mark.asyncio(loop_scope='session')
 async def test_sign_user_in(
