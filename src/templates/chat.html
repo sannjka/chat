@@ -64,51 +64,65 @@
     {{ super() }}
   
     const chatbox = document.getElementById("chatbox");
-    var ws = new WebSocket("{{ url_for('websocket_endpoint',
-                            client_id=user) }}");
-    ws.onmessage = function(event) {
-        chatbox.innerHTML += event.data + "<br>";
-        chatbox.scrollTop = chatbox.scrollHeight;
-    };
-    function sendMessage(event) {
-        var input = document.getElementById("messageText")
-        ws.send(input.value)
-        input.value = ''
-        event.preventDefault()
+    let ws;
+
+    function connectToChat(friend) {
+        ws = new WebSocket(`{{ url_for(
+            'websocket_endpoint', client_id=user, friend_id='${friend}',
+        ) }}`);
+        ws.onmessage = function(event) {
+            chatbox.innerHTML += event.data + "<br>";
+            chatbox.scrollTop = chatbox.scrollHeight;
+        };
     }
 
+    function sendMessage(event) {
+        var input = document.getElementById("messageText");
+        ws.send(input.value);
+        input.value = '';
+        event.preventDefault();
+    }
+
+    function clearChat() {
+        if (ws) {
+            ws.close();
+        };
+        chatbox.innerHTML = "";
+    }
+
+    function fillHistoryToChat(friend) {
+        chatbox.innerHTML = `...<br>history of '${friend}'<br>...<br>`
+    }
 
     document.addEventListener("DOMContentLoaded", () => {
+        const allLinks = document.querySelectorAll(`a[href*="tab_"]`);
 
-    const allLinks = document.querySelectorAll(`a[href*="tab_"]`);
+        const switchTab = (linkId) => {
+            let friendName = linkId.substring(4);
+            clearChat();
+            connectToChat(friendName);
+            fillHistoryToChat(friendName);
+        };
 
-    const switchTab = (linkId) => {
-        chatbox.innerHTML += linkId + "<br>";
-        chatbox.scrollTop = chatbox.scrollHeight;
-    };
+        const handleTabClick = (event) => {
+          const linkId = event.target.id;
+          allLinks.forEach((link) => {
+            const isCurrentLink = link.id === linkId;
+            link.classList.toggle("bg-gray-100", isCurrentLink);
+            link.classList.toggle("text-blue-600", isCurrentLink);
+            link.classList.toggle("text-gray-400", !isCurrentLink);
+          });
+          switchTab(linkId);
+        };
 
-    const handleTabClick = (event) => {
-    {#
-      event.preventDefault();
-    #}
-      const linkId = event.target.id;
-      allLinks.forEach((link) => {
-        const isCurrentLink = link.id === linkId;
-        link.classList.toggle("bg-gray-100", isCurrentLink);
-        link.classList.toggle("text-blue-600", isCurrentLink);
-        link.classList.toggle("text-gray-400", !isCurrentLink);
-      });
-      switchTab(linkId);
-    };
+        allLinks.forEach((link) => {
+          link.addEventListener("click", handleTabClick);
+        });
 
-    allLinks.forEach((link) => {
-      link.addEventListener("click", handleTabClick);
-    });
-
-    const currentHash = window.location.hash;
-    const activeLink = currentHash
-      ? document.querySelector(`a[href="${currentHash}"]`)
-      : document.querySelector("a");
-    handleTabClick({ target: activeLink });
+        const currentHash = window.location.hash;
+        const activeLink = currentHash && currentHash.startsWith('#tab_')
+          ? document.querySelector(`a[href="${currentHash}"]`)
+          : document.querySelector(`a[href='#tab_common']`);
+        activeLink.click();
     });
 {% endblock %}
