@@ -1,6 +1,7 @@
 from typing import List, Dict
 
 from fastapi import FastAPI, WebSocket, Request, WebSocketDisconnect
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -16,6 +17,8 @@ app = FastAPI()
 
 app.include_router(api_router, prefix='/api/v1')
 app.include_router(webapp_router, prefix='')
+
+app.mount('/static', StaticFiles(directory='src/static'), name='static')
 
 user_exceptions.include_app(app)
 
