@@ -5,7 +5,9 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.models.users import User
+from src.models.messages import Message
 from src.database.orm import User as User_database
+from src.database.orm import Message as Message_database
 
 
 class Repository:
@@ -37,8 +39,27 @@ class Repository:
             query = select(self.model)
             if filters:
                 query = query.filter_by(**filters)
+            query = query.order_by(self.model.created_at)
             result = await session.execute(query)
             return result.scalars().all()
 
 class UserRepository(Repository):
     model = User_database
+
+class MessageRepository(Repository):
+    model = Message_database
+
+    async def get_dialog(self, interlocutor1, interlocutor2):
+        async with self.session() as session:
+            query = select(self.model).filter(
+                (
+                    (self.model.sender == interlocutor1)
+                    & (self.model.recipient == interlocutor2)
+                ) | (
+                    (self.model.sender == interlocutor2)
+                    & (self.model.recipient == interlocutor1)
+                )
+            )
+            query = query.order_by(self.model.created_at)
+            result = await session.execute(query)
+            return result.scalars().all()

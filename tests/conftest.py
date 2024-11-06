@@ -16,6 +16,7 @@ from src.config import get_test_db_url
 from src.auth.hash_password import HashPassword
 from src.webapp.users import get_users
 from src.webapp.utils import get_httpx_client
+from src.auth.jwt_handler import create_access_token
 
 
 DATABASE_URL = get_test_db_url()
@@ -37,6 +38,10 @@ async def override_get_httpx_client() -> httpx.AsyncClient:
             transport=transport, base_url='http://app')
 
 @pytest_asyncio.fixture(scope='function')
+async def httpx_client():
+    return await override_get_httpx_client()
+
+@pytest_asyncio.fixture(scope='function')
 async def default_client_function():
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_users] = override_get_users
@@ -52,8 +57,7 @@ async def default_client_function():
 @pytest_asyncio.fixture(scope='function')
 async def client_for_get_users():
     app.dependency_overrides[get_session] = override_get_session
-    app.dependency_overrides[get_httpx_client] = \
-            override_get_httpx_client
+    app.dependency_overrides[get_httpx_client] = override_get_httpx_client
     await init_db(engine)
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(
@@ -88,7 +92,25 @@ async def add_user():
                 await session.commit()
     yield _add_user
 
+@pytest_asyncio.fixture(scope='function')
+async def add_message():
+    async def _add_message(sender, recipient, content, **rest):
+        async with override_session_maker() as session:
+            async with session.begin():
+                await session.execute(text(
+                    '''
+                    INSERT INTO messages (sender, recipient, content)
+                    VALUES (:sender, :recipient, :content)
+                    '''
+                ), dict(sender=sender, recipient=recipient, content=content))
+                await session.commit()
+    yield _add_message
+
 @pytest.fixture(scope='function')
-def ws_client():
+async def ws_client():
+    app.dependency_overrides[get_session] = override_get_session
+    await init_db(engine)
     with TestClient(app) as client:
         yield client
+        await drop_db(engine)
+        app.dependency_overrides.clear()

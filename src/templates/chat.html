@@ -91,7 +91,27 @@
     }
 
     function fillHistoryToChat(friend) {
-        chatbox.innerHTML = `...<br>history of '${friend}'<br>...<br>`
+        if (friend != 'common') {
+            fetch(`{{ url_for(
+                'retrieve_all_messages', friend='${friend}'
+            ) }}`, {
+                cache: 'reload',
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json;charcet=utf-8',
+                },
+            })
+            .then((response) => response.json())
+            .then(function(json) {
+                json.forEach((message) => {
+                    if (message.sender == friend) {
+                        chatbox.innerHTML += `${friend} says: ${message.content}<br>`
+                    } else {
+                        chatbox.innerHTML += `You say: ${message.content}<br>`
+                    };
+                });
+            });
+        };
     }
 
     document.addEventListener("DOMContentLoaded", () => {

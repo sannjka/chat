@@ -1,4 +1,7 @@
 import pytest
+from sqlalchemy.sql import text
+
+from src.auth.jwt_handler import create_access_token
 
 
 def test_ws_send_get_message_private_chat(ws_client):

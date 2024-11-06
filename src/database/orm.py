@@ -19,6 +19,7 @@ async_session_maker = async_sessionmaker(
 )
 
 str_pk = Annotated[str, mapped_column(primary_key=True)]
+int_pk = Annotated[int, mapped_column(primary_key=True)]
 created_at = Annotated[datetime, mapped_column(server_default=func.now())]
 updated_at = Annotated[datetime, mapped_column(server_default=func.now(),
                                                onupdate=datetime.now)]
@@ -36,6 +37,14 @@ class User(Base):
 
     username: Mapped[str_pk]
     password: Mapped[str_not_null]
+
+class Message(Base):
+    __tablename__ = 'messages'
+
+    id: Mapped[int_pk]
+    sender: Mapped[str_not_null]
+    recipient: Mapped[str_not_null]
+    content: Mapped[str_not_null]
 
 async def init_db(engine) -> None:
     async with engine.begin() as conn:

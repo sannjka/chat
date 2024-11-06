@@ -9,7 +9,7 @@ from src.models.users import User
 
 
 @pytest.mark.asyncio(loop_scope='session')
-async def test_repository_add_success(
+async def test_user_repository_add_success(
         db_client,
     ) -> None:
     session_maker = await db_client()
@@ -30,10 +30,10 @@ async def test_repository_add_success(
     assert res.scalar_one_or_none() == data['username']
 
 @pytest.mark.asyncio(loop_scope='session')
-async def test_repository_add_fail(
+async def test_user_repository_add_fail(
         db_client, add_user,
     ) -> None:
-    # preparation for the Integriti Error
+    # preparation for the Integrity Error
     data = {
         'username': 'new_user@mail.com',
         'password': 'new_password',
@@ -47,7 +47,7 @@ async def test_repository_add_fail(
         await user_database.add(User(**data))
 
 @pytest.mark.asyncio(loop_scope='session')
-async def test_repository_get_one_exists(
+async def test_user_repository_get_one_exists(
         db_client, add_user,
     ) -> None:
     data = {
@@ -63,8 +63,8 @@ async def test_repository_get_one_exists(
     assert res.username == data['username']
 
 @pytest.mark.asyncio(loop_scope='session')
-async def test_repository_get_one_does_not_exist(
-        db_client, 
+async def test_user_repository_get_one_does_not_exist(
+        db_client,
     ) -> None:
     data = {
         'username': 'new_user@mail.com',
@@ -78,7 +78,7 @@ async def test_repository_get_one_does_not_exist(
     assert res is None
 
 @pytest.mark.asyncio(loop_scope='session')
-async def test_repository_get_all(
+async def test_user_repository_get_all(
         db_client, add_user,
     ) -> None:
     data1 = {
@@ -98,7 +98,7 @@ async def test_repository_get_all(
     assert len(res) == 2
 
 @pytest.mark.asyncio(loop_scope='session')
-async def test_repository_get_filtered(
+async def test_user_repository_get_filtered(
         db_client, add_user,
     ) -> None:
     data1 = {

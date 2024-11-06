@@ -1,6 +1,9 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Callable
 
-from fastapi import WebSocket, WebSocketDisconnect, APIRouter
+from fastapi import WebSocket, WebSocketDisconnect, APIRouter, Depends
+from httpx import AsyncClient
+
+from .utils import get_httpx_client, api_create_message
 
 
 chat_router = APIRouter()
@@ -41,20 +44,22 @@ async def websocket_endpoint(
         websocket: WebSocket,
         client_id: str,
         friend_id: str,
+        save_message_to_db: Callable = Depends(api_create_message),
     ):
     await manager.connect(client_id, friend_id, websocket)
     try:
         while True:
             data = await websocket.receive_text()
-            personal_message = f'You say: {data}'
-            common_message = f'{client_id} says: {data}'
-            await manager.send_personal_message(personal_message, websocket)
+            reverse_message = f'You say: {data}'
+            forward_message = f'{client_id} says: {data}'
+            await manager.send_personal_message(reverse_message, websocket)
             if friend_id == 'common':
-                await manager.broadcast(common_message, client_id)
+                await manager.broadcast(forward_message, client_id)
             else:
                 await manager.send_private_message(
-                        common_message, client_id, friend_id,
+                        forward_message, client_id, friend_id,
                 )
+                await save_message_to_db(message=data)
     except WebSocketDisconnect:
         manager.disconnect(client_id, friend_id, websocket)
         left_message = f'{client_id} left the chat'
