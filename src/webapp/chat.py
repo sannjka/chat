@@ -44,22 +44,24 @@ async def websocket_endpoint(
         websocket: WebSocket,
         client_id: str,
         friend_id: str,
+        httpx_client: AsyncClient = Depends(get_httpx_client),
         save_message_to_db: Callable = Depends(api_create_message),
     ):
     await manager.connect(client_id, friend_id, websocket)
     try:
-        while True:
-            data = await websocket.receive_text()
-            reverse_message = f'You say: {data}'
-            forward_message = f'{client_id} says: {data}'
-            await manager.send_personal_message(reverse_message, websocket)
-            if friend_id == 'common':
-                await manager.broadcast(forward_message, client_id)
-            else:
-                await manager.send_private_message(
-                        forward_message, client_id, friend_id,
-                )
-                await save_message_to_db(message=data)
+        async with httpx_client as client:
+            while True:
+                data = await websocket.receive_text()
+                reverse_message = f'You say: {data}'
+                forward_message = f'{client_id} says: {data}'
+                await manager.send_personal_message(reverse_message, websocket)
+                if friend_id == 'common':
+                    await manager.broadcast(forward_message, client_id)
+                else:
+                    await manager.send_private_message(
+                            forward_message, client_id, friend_id,
+                    )
+                    await save_message_to_db(message=data, client=client)
     except WebSocketDisconnect:
         manager.disconnect(client_id, friend_id, websocket)
         left_message = f'{client_id} left the chat'

@@ -38,10 +38,6 @@ async def override_get_httpx_client() -> httpx.AsyncClient:
             transport=transport, base_url='http://app')
 
 @pytest_asyncio.fixture(scope='function')
-async def httpx_client():
-    return await override_get_httpx_client()
-
-@pytest_asyncio.fixture(scope='function')
 async def default_client_function():
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_users] = override_get_users
