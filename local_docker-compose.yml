@@ -4,10 +4,11 @@ services:
     container_name: chat
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./local_Dockerfile
     volumes:
       - ./static/:/home/chat/static/
-      - /tmp/:/tmp/
+    ports:
+      - "8011:8011"
     env_file: .env-docker
     links:
       - postgres:postgres
