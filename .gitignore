@@ -10,3 +10,4 @@ db-data
 build
 .coverage
 tailwind*
+.env*

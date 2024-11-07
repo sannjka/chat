@@ -1,0 +1,22 @@
+name: websocket_chat
+services:
+  chat:
+    container_name: chat
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./static/:/home/chat/static/
+    ports:
+      - "8011:8011"
+    env_file: .env-docker
+    links:
+      - postgres:postgres
+    restart: always
+  postgres:
+    container_name: db
+    image: postgres
+    env_file: .env-postgres
+    restart: always
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
