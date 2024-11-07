@@ -74,6 +74,18 @@
             chatbox.innerHTML += event.data + "<br>";
             chatbox.scrollTop = chatbox.scrollHeight;
         };
+
+        ws.onclose = function(e) {
+          console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+          setTimeout(function() {
+            connectToChat(friend);
+          }, 1000);
+        };
+
+        ws.onerror = function(err) {
+          console.error('Socket encountered error: ', err.message, 'Closing socket');
+          ws.close();
+        };
     }
 
     function sendMessage(event) {
