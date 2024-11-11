@@ -9,8 +9,6 @@ services:
       - ./static/:/home/chat/static/
       - /tmp/:/tmp/
     env_file: .env-docker
-    links:
-      - postgres:postgres
     restart: always
   postgres:
     container_name: db

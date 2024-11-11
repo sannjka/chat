@@ -67,6 +67,10 @@
     let ws;
 
     function connectToChat(friend) {
+        url = `{{ url_for(
+            'websocket_endpoint', client_id=user, friend_id='${friend}',
+        ) }}`
+        url = url.replace("ws:", "wss:");
         ws = new WebSocket(`{{ url_for(
             'websocket_endpoint', client_id=user, friend_id='${friend}',
         ) }}`);
@@ -75,6 +79,7 @@
             chatbox.scrollTop = chatbox.scrollHeight;
         };
 
+        {#
         ws.onclose = function(e) {
           console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
           setTimeout(function() {
@@ -86,6 +91,7 @@
           console.error('Socket encountered error: ', err.message, 'Closing socket');
           ws.close();
         };
+        #}
     }
 
     function sendMessage(event) {

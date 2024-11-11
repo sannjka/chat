@@ -1,7 +1,6 @@
 import getpass
-from invoke import Exit, Responder
-#from invocations.console import confirm
-from fabric import task, Connection
+from invoke import Responder
+from fabric import task
 
 
 REPO_URL = 'https://github.com/sannjka/chat.git'
@@ -10,28 +9,6 @@ sudopass = Responder(
     pattern=r'\[sudo\] password',
     response=f'{sudo_pass}\n',
 )
-sudopass2 = Responder(
-    pattern=r'sudo:',
-    response=f'{sudo_pass}\n',
-)
-
-@task
-def depl(c):
-    site_folder = f'/home/{c.user}/sites/{c.host}'
-    print(dir(c))
-    print(c.host)
-    print(c.user)
-    c.run('ls')
-    with c.cd(site_folder):
-        #c.run(f'cd {site_folder} && ls')
-        c.run('ls')
-
-
-#from fabric.contrib.files import append, exists, sed
-#from fabric.api import env, local, run, put, cd, sudo, get
-#
-#REPO_URL = 'https://github.com/sannjka/chat.git'
-#FILE_NAME = local('echo dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql', capture=True)
 
 
 @task
@@ -44,7 +21,7 @@ def deploy(c):
         _update_boot_sh(c)
         _update_static_files(c)
         _create_or_update_donenv(c, site_folder)
-        #_run_docker_compose(c)
+        _run_docker_compose(c)
         _make_nginx_conf(c)
 
 def exists(c, path):
@@ -66,7 +43,6 @@ def _create_or_update_donenv(c, site_folder):
 
 def _run_docker_compose(c):
     print('before')
-    #c.sudo('chmod -R 755 db-data', pty=True, watchers=[sudopass])
     if exists(c, 'db-data'):
         c.run('sudo chmod -R 755 db-data', pty=True, watchers=[sudopass])
     c.run('docker-compose up -d --build')
@@ -81,29 +57,4 @@ def _make_nginx_conf(c):
     c.run('sudo systemctl restart nginx', pty=True, watchers=[sudopass])
 
 def _update_boot_sh(c):
-    c.run(f'sed "s/SITENAME/{c.host}/g" boot.sh >> boot.sh')
-    #sed('boot.sh', 'SITENAME', env.host)
-
-#def backup():
-#    site_folder = f'/home/{env.user}/sites/{env.host}'
-#    if not exists(site_folder):
-#        return
-#    with cd(site_folder):
-#        _make_backup()
-#        _retrieve_backup()
-#        _remove_backup_on_server()
-#        _retrieve_static()
-#
-#def _make_backup():
-#    run("container_name=`docker compose ps | awk '/postgres/{print $1}'` &&"
-#        'docker exec -t $container_name pg_dump -c -U postgres -d postgres '
-#        f'> {FILE_NAME}')
-#
-#def _retrieve_backup():
-#    get(FILE_NAME, '../')
-#
-#def _remove_backup_on_server():
-#    run(f'rm {FILE_NAME}')
-#
-#def _retrieve_static():
-#    get('static/', '../')
+    c.run(f'sed -i "s/SITENAME/{c.host}/g" boot.sh')
