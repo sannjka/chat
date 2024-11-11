@@ -24,8 +24,9 @@ def deploy(c):
         _run_docker_compose(c)
         _make_nginx_conf(c)
 
-def exists(c, path):
-    return not c.run(f'test -d {path}', warn=True).failed
+def exists(c, path, directory=True):
+    type_ = '-d' if directory else '-f'
+    return not c.run(f'test {type_} {path}', warn=True).failed
 
 def _get_latest_source_code(c, site_folder, current_commit):
     if exists(c, '.git'):
@@ -42,16 +43,15 @@ def _create_or_update_donenv(c, site_folder):
     b = c.put('../.env-postgres', site_folder)
 
 def _run_docker_compose(c):
-    print('before')
     if exists(c, 'db-data'):
         c.run('sudo chmod -R 755 db-data', pty=True, watchers=[sudopass])
-    c.run('docker-compose up -d --build')
+    c.run('docker compose up -d --build')
 
 def _make_nginx_conf(c):
     c.run(f'sed "s/SITENAME/{c.host}/g" deploy_tools/nginx.template.conf |'
           f' sudo tee /etc/nginx/sites-available/{c.host}',
           pty=True, watchers=[sudopass])
-    if not exists(c, f'/etc/nginx/sites-enabled/{c.host}'):
+    if not exists(c, f'/etc/nginx/sites-enabled/{c.host}', False):
         c.run(f'sudo ln -s /etc/nginx/sites-available/{c.host} '
             f'/etc/nginx/sites-enabled/{c.host}', pty=True, watchers=[sudopass])
     c.run('sudo systemctl restart nginx', pty=True, watchers=[sudopass])

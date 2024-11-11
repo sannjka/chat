@@ -7,4 +7,4 @@ while true; do
     echo Deploy command failed, retrying in 5 secs...
     sleep 5
 done
-exec uvicorn src.main:app --uds /tmp/SITENAME.socket
+exec uvicorn src.main:app --uds /tmp/SITENAME.socket --proxy-headers --forwarded-allow-ips="*"
