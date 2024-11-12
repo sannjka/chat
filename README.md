@@ -34,7 +34,7 @@ docker compose -f local_docker-compose.yml up -d --build
 visit url: localhost:8011
 
 ### Server
-For server Ubuntu with Nginx and Docker
+For server Ubuntu with Nginx and Docker  
 On local computer do:
 ```bash
 git clone git@github.com:sannjka/chat.git
