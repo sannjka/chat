@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     DB_NAME: Optional[str] = None
     DB_USER: Optional[str] = None
     DB_PASSWORD: Optional[str] = None
+    TG_TOKEN: Optional[str] = None
 
     model_config = SettingsConfigDict(env_file='.env')
 
