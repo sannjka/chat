@@ -1,12 +1,16 @@
 from typing import List, Dict, Tuple, Callable
+import logging
 
 from fastapi import WebSocket, WebSocketDisconnect, APIRouter, Depends
 from httpx import AsyncClient
 
 from .utils import get_httpx_client, api_create_message
+from celery_worker import notify
 
 
+logger = logging.getLogger('uvicorn.error')
 chat_router = APIRouter()
+
 
 class ConnectionManager:
     def __init__(self):
@@ -32,9 +36,16 @@ class ConnectionManager:
                 await self.send_personal_message(message, connection)
 
     async def send_private_message(self, message: str, client_id, friend_id):
+        is_sent = False
         for (cl_id, fr_id), connection in self.active_connections:
             if cl_id == friend_id and fr_id == client_id:
                 await self.send_personal_message(message, connection)
+                is_sent = True
+        if not is_sent:
+            try:
+                notify.delay(client_id, friend_id, message)
+            except e:
+                logger.debug(f'tg notification: {e}')
 
 manager = ConnectionManager()
 
