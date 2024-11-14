@@ -46,7 +46,7 @@ class Message(Base):
     sender: Mapped[str_not_null]
     recipient: Mapped[str_not_null]
     content: Mapped[str_not_null]
-    read:  Mapped[bool] = mapped_column(default=False)
+    read:  Mapped[bool] = mapped_column(default=False, nullable=True)
 
 async def init_db(engine) -> None:
     async with engine.begin() as conn:

@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     DB_USER: Optional[str] = None
     DB_PASSWORD: Optional[str] = None
     TG_TOKEN: Optional[str] = None
+    CELERY_BROKER: Optional[str] = None
 
     model_config = SettingsConfigDict(env_file='.env')
 
