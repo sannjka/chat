@@ -5,10 +5,13 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
+    command: sh -c "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8011 --reload"
     volumes:
       - ./static/:/home/chat/static/
       - /tmp/:/tmp/
     env_file: .env-docker
+    depends_on:
+      - postgres
     restart: always
   postgres:
     container_name: db
@@ -17,3 +20,28 @@ services:
     restart: always
     volumes:
       - ./db-data:/var/lib/postgresql/data
+  rabbit:
+    container_name: rabbit
+    image: rabbitmq
+    ports:
+      - "5672:5672"
+    restart: always
+  celery_worker:
+    container_name: celery_worker
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    env_file: .env-docker
+    command: celery -A celery_worker.worker worker --loglevel=info
+    depends_on:
+      - chat
+      - rabbit
+    restart: always
+  telegram_bot:
+    container_name: telegram_bot
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    env_file: .env-docker
+    command: python tg_bot.py
+    restart: always
