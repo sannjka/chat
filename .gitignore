@@ -11,3 +11,4 @@ build
 .coverage
 tailwind*
 .env*
+logs

@@ -10,7 +10,8 @@ COPY src src
 COPY alembic.ini ./
 COPY local_boot.sh ./
 RUN chmod 755 local_boot.sh
+COPY celery_worker.py tg_bot.py ./
 
-# runtimee configuration
+# runtime configuration
 EXPOSE 8011
-ENTRYPOINT ["./local_boot.sh"]
+#ENTRYPOINT ["./local_boot.sh"]

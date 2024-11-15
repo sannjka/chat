@@ -37,6 +37,7 @@ class User(Base):
 
     username: Mapped[str_pk]
     password: Mapped[str_not_null]
+    telegram_id: Mapped[int] = mapped_column(nullable=True)
 
 class Message(Base):
     __tablename__ = 'messages'
@@ -45,6 +46,7 @@ class Message(Base):
     sender: Mapped[str_not_null]
     recipient: Mapped[str_not_null]
     content: Mapped[str_not_null]
+    read:  Mapped[bool] = mapped_column(default=False, nullable=True)
 
 async def init_db(engine) -> None:
     async with engine.begin() as conn:

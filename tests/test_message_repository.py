@@ -61,7 +61,9 @@ async def test_message_repository_get_filtered(
         'content': 'message4',
         }
     data = [data1, data2, data3, data4]
-    await asyncio.gather(*[add_message(**d) for d in data])
+    #await asyncio.gather(*[add_message(**d) for d in data])
+    for d in data:
+        await add_message(**d)
 
     session_maker = await db_client()
     message_database = MessageRepository(session_maker)

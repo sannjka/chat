@@ -13,4 +13,4 @@ RUN chmod 755 boot.sh
 
 # runtimee configuration
 EXPOSE 8011
-ENTRYPOINT ["./boot.sh"]
+#ENTRYPOINT ["./boot.sh"]

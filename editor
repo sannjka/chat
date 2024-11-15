@@ -94,10 +94,10 @@ if [[ $? != 0 ]]; then
     (( page++ ))
     tmux new-window -n docker -t fastapi_chat    
     activate_env $page ""
-    #tmux send-keys -t fastapi_chat:$page "vim Dockerfile" C-m
-    #tmux send-keys -t fastapi_chat:$page ":tabnew docker-compose.yml" C-m
-    #tmux send-keys -t fastapi_chat:$page ":tabnew .dockerignore" C-m
-    #tmux send-keys -t fastapi_chat:$page '1gt'
+    tmux send-keys -t fastapi_chat:$page "vim local_Dockerfile" C-m
+    tmux send-keys -t fastapi_chat:$page ":tabnew local_docker-compose.yml" C-m
+    tmux send-keys -t fastapi_chat:$page ":tabnew .dockerignore" C-m
+    tmux send-keys -t fastapi_chat:$page '1gt'
     tmux split-window -h -t fastapi_chat:$page
     activate_env $page.2 ""
     tmux select-pane -t fastapi_chat:$page.1

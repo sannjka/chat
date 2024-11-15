@@ -15,7 +15,7 @@ from src.database.repository import UserRepository
 from src.config import get_test_db_url
 from src.auth.hash_password import HashPassword
 from src.webapp.users import get_users
-from src.webapp.utils import get_httpx_client
+from src.webapp.utils import get_httpx_client, get_celery_notify
 from src.auth.jwt_handler import create_access_token
 
 
@@ -37,10 +37,17 @@ async def override_get_httpx_client() -> httpx.AsyncClient:
     return httpx.AsyncClient(
             transport=transport, base_url='http://app')
 
+async def override_get_celery_notify():
+    class MockPromise:
+        def delay(*args, **kwargs):
+            print('celery worker:', 'do nothing')
+    return MockPromise()
+
 @pytest_asyncio.fixture(scope='function')
 async def default_client_function():
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_users] = override_get_users
+    app.dependency_overrides[get_celery_notify] = override_get_celery_notify
     await init_db(engine)
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(
@@ -105,6 +112,7 @@ async def add_message():
 @pytest.fixture(scope='function')
 async def ws_client():
     app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_celery_notify] = override_get_celery_notify
     await init_db(engine)
     with TestClient(app) as client:
         yield client
