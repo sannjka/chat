@@ -3,9 +3,14 @@ from typing import List
 from fastapi import Request, Depends, WebSocket
 from httpx import AsyncClient
 
+from celery_worker import notify
+
 
 async def get_httpx_client() -> AsyncClient:
     return AsyncClient()
+
+async def get_celery_notify():
+    return notify
 
 async def get_users(
         request: Request,

@@ -4,8 +4,7 @@ import logging
 from fastapi import WebSocket, WebSocketDisconnect, APIRouter, Depends
 from httpx import AsyncClient
 
-from .utils import get_httpx_client, api_create_message
-from celery_worker import notify
+from .utils import get_httpx_client, api_create_message, get_celery_notify
 
 
 logger = logging.getLogger('uvicorn.error')
@@ -35,7 +34,9 @@ class ConnectionManager:
             if cl_id != client_id and fr_id == 'common':
                 await self.send_personal_message(message, connection)
 
-    async def send_private_message(self, message: str, client_id, friend_id):
+    async def send_private_message(
+            self, message: str, client_id, friend_id, notify,
+        ):
         is_sent = False
         for (cl_id, fr_id), connection in self.active_connections:
             if cl_id == friend_id and fr_id == client_id:
@@ -44,8 +45,8 @@ class ConnectionManager:
         if not is_sent:
             try:
                 notify.delay(client_id, friend_id, message)
-            except e:
-                logger.debug(f'tg notification: {e}')
+            except Exception as e:
+                logger.info(f'tg notification: {e}')
 
 manager = ConnectionManager()
 
@@ -57,6 +58,7 @@ async def websocket_endpoint(
         friend_id: str,
         httpx_client: AsyncClient = Depends(get_httpx_client),
         save_message_to_db: Callable = Depends(api_create_message),
+        notify = Depends(get_celery_notify),
     ):
     await manager.connect(client_id, friend_id, websocket)
     try:
@@ -71,6 +73,7 @@ async def websocket_endpoint(
                 else:
                     await manager.send_private_message(
                             forward_message, client_id, friend_id,
+                            notify,
                     )
                     await save_message_to_db(message=data, client=client)
     except WebSocketDisconnect:
@@ -81,5 +84,6 @@ async def websocket_endpoint(
         else:
             await manager.send_private_message(
                     left_message, client_id, friend_id,
+                    notify,
             )
 
