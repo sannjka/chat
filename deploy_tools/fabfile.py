@@ -58,3 +58,4 @@ def _make_nginx_conf(c):
 
 def _update_boot_sh(c):
     c.run(f'sed -i "s/SITENAME/{c.host}/g" boot.sh')
+    c.run(f'sed -i "s/SITENAME/{c.host}/g" docker-compose.yml')
