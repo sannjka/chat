@@ -82,10 +82,10 @@ For server Ubuntu with Nginx and Docker
 On local computer do:
 ```bash
 git clone git@github.com:sannjka/chat.git
-cd chat/deploy_tools
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements/dev.txt
+cd chat/deploy_tools
 ```
 In `nginx.template.conf` correct path to ssl certificate
 If you do not have a certificate, delete all that marked as `# managed by Certbot`
