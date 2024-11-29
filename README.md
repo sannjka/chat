@@ -25,18 +25,24 @@ source .venv/bin/activate
 pip install -r requirements/dev.txt
 uvicorn src.main:app --port=8010 --reload
 ```
-We are going to need the `.env` file:
-```
-SECRET_KEY=your-secret-key
-ALGORITHM=HS256
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=your-db-name
-DB_USER=your-db-user
-DB_PASSWORD=your-db-password
-TG_TOKEN=your-telegram-bot-token
-CELERY_BROKER=pyamqp://localhost:5672//
-```
+
+<details>
+<summary>We are going to need the `.env` file:</summary>
+
+>```
+>SECRET_KEY=your-secret-key
+>ALGORITHM=HS256
+>DB_HOST=localhost
+>DB_PORT=5432
+>DB_NAME=your-db-name
+>DB_USER=your-db-user
+>DB_PASSWORD=your-db-password
+>TG_TOKEN=your-telegram-bot-token
+>CELERY_BROKER=pyamqp://localhost:5672//
+>```
+
+</details>
+
 Also we need:  
 - database with the name that corresponds this `.env` settings
 - `rabbitmq` or another broker set up
@@ -59,22 +65,33 @@ git clone git@github.com:sannjka/chat.git
 cd chat
 docker compose -f local_docker-compose.yml up -d --build
 ```
-`.env` file:
-```
-SECRET_KEY=your-secret-key
-ALGORITHM=HS256
-DB_HOST=db
-DB_PORT=5432
-DB_NAME=postgres
-DB_USER=postgres
-DB_PASSWORD=your-db-password
-TG_TOKEN=your-telegram-bot-token
-CELERY_BROKER=pyamqp://localhost:5672//
-```
-`.env-postgres` file:
-```
-POSTGRES_PASSWORD=your-db-password
-```
+
+<details>
+<summary>`.env-docker` file:</summary>
+
+>```
+>SECRET_KEY=your-secret-key
+>ALGORITHM=HS256
+>DB_HOST=db
+>DB_PORT=5432
+>DB_NAME=postgres
+>DB_USER=postgres
+>DB_PASSWORD=your-db-password
+>TG_TOKEN=your-telegram-bot-token
+>CELERY_BROKER=pyamqp://localhost:5672//
+>```
+
+</details>
+
+<details>
+<summary>`.env-postgres` file:</summary>
+
+>```
+>POSTGRES_PASSWORD=your-db-password
+>```
+
+</details>
+
 visit url: localhost:8011
 
 ### Server
